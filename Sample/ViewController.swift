@@ -11,9 +11,10 @@
 
 import UIKit
 
-class ViewController: UIViewController, ASTableViewDataSource, ASTableViewDelegate {
+class ViewController: UIViewController, ASTableViewDataSource, ASTableViewDelegate, ASDataControllerDelegate {
 
   var tableView: ASTableView
+  var count = 15
 
 
   // MARK: UIViewController.
@@ -25,6 +26,7 @@ class ViewController: UIViewController, ASTableViewDataSource, ASTableViewDelega
 
     self.tableView.asyncDataSource = self
     self.tableView.asyncDelegate = self
+    self.tableView.setTuningParameters(ASRangeTuningParameters(leadingBufferScreenfuls: 1.5, trailingBufferScreenfuls: 0.5), forRangeType: ASLayoutRangeType.Preload)
   }
 
   required init(coder aDecoder: NSCoder) {
@@ -58,7 +60,28 @@ class ViewController: UIViewController, ASTableViewDataSource, ASTableViewDelega
   }
 
   func tableView(tableView: UITableView!, numberOfRowsInSection section: Int) -> Int {
-    return 20
+    return count
+  }
+  
+  func tableView(tableView: ASTableView!, willDisplayNodeForRowAtIndexPath indexPath: NSIndexPath!) {
+    let cellNode = tableView.nodeForRowAtIndexPath(indexPath)
+    if let feedCell = cellNode as? CellNode {
+      feedCell.reloadTextIfNeeded()
+    }
+  }
+  
+  func tableView(tableView: ASTableView!, willBeginBatchFetchWithContext context: ASBatchContext!) {
+    context.completeBatchFetching(true)
+    var indexPaths = [NSIndexPath]()
+    for var i = count; i <= count + 15; i++ {
+      indexPaths.append(NSIndexPath(forRow: i, inSection: 0))
+    }
+    tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.Automatic)
+    count += 15
+  }
+  
+  func shouldBatchFetchForTableView(tableView: ASTableView!) -> Bool {
+    return true
   }
 
 }
